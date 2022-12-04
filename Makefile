@@ -45,10 +45,14 @@ gen-dhparam: ## Generate dhparam
 	@openssl dhparam -out $(NGINX_DHPARAM_FILENAME) $(NGINX_DHPARAM_SIZE)
 
 gen-certificates: ## Generate ssl certificate via certbot
-	@$(DC_BIN) run --rm --entrypoint "certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml up
+	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml down
 
 gen-certificates-staging: ## Generate staging ssl certificate via certbot
-	@$(DC_BIN) run --rm --entrypoint "certbot certonly --staging --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml up
+	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --staging --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml down
 
 gen-dummy-cert: ## Generate dummy ssl certificate
-	@$(DC_BIN) run --rm --entrypoint "openssl req -x509 -nodes -days 1 -newkey rsa:$(NGINX_SSL_KEY_SIZE) -keyout '$(NGINX_SSL_KEY_FILENAME)' -out '$(NGINX_SSL_CERT_FILENAME)' -subj '/CN=$(DOMAIN)'" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "openssl req -x509 -nodes -days 1 -newkey rsa:$(NGINX_SSL_KEY_SIZE) -keyout '$(NGINX_SSL_KEY_FILENAME)' -out '$(NGINX_SSL_CERT_FILENAME)' -subj '/CN=$(DOMAIN)'" certbot

@@ -4,9 +4,9 @@ networks:
   gitea:
     external: false
 
-volumes:
-  certbot:
-    driver: local
+#volumes:
+#  certbot:
+#    driver: local
 
 services:
   gitea:
@@ -39,12 +39,6 @@ services:
       - ${NGINX_DHPARAM_FILENAME}:/etc/nginx/ssl/dhparam-2048.pem:ro
       - ${NGINX_SSL_CERT_FILENAME}:/etc/nginx/ssl/fullchain.pem:ro
       - ${NGINX_SSL_KEY_FILENAME}:/etc/nginx/ssl/privkey.pem:ro
-      - certbot:/var/www/certbot:ro
+#      - certbot:/var/www/certbot:ro
     ports:
       - "443:443"
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ${LETSENCRYPT_PATH}:/etc/letsencrypt:rw
-      - certbot:/var/www/certbot:rw

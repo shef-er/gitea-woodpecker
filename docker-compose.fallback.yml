@@ -1,44 +1,18 @@
 version: "3.9"
 
-networks:
-  gitea:
-    external: false
-
 volumes:
   certbot:
     driver: local
 
 services:
-  gitea:
-    image: gitea/gitea:1.17.1
-    container_name: gitea
-    environment:
-      - USER_UID=${USER_UID}
-      - USER_GID=${USER_GID}
-    restart: always
-    networks:
-      - gitea
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-      - ${GITEA_DATA_PATH}:/data:rw
-      - ${GITEA_SSH_PATH}:/data/git/.ssh:rw
-    ports:
-      - "127.0.0.1:2222:22"
-
   nginx:
     image: nginx:1.23.1-alpine
     container_name: nginx
     environment:
       - DOMAIN=${DOMAIN}
     restart: always
-    networks:
-      - gitea
     volumes:
       - ${NGINX_CONFIG_TEMPLATE_FILENAME}:/etc/nginx/templates/fallback.conf.template:ro
-      - ${NGINX_DHPARAM_FILENAME}:/etc/nginx/ssl/dhparam-2048.pem:ro
-      - ${NGINX_SSL_CERT_FILENAME}:/etc/nginx/ssl/fullchain.pem:ro
-      - ${NGINX_SSL_KEY_FILENAME}:/etc/nginx/ssl/privkey.pem:ro
       - certbot:/var/www/certbot:ro
     ports:
       - "80:80"
