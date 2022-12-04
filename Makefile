@@ -45,12 +45,12 @@ gen-dhparam: ## Generate dhparam
 	@openssl dhparam -out $(NGINX_DHPARAM_FILENAME) $(NGINX_DHPARAM_SIZE)
 
 gen-certificates: ## Generate ssl certificate via certbot
-	@$(DC_BIN) -f docker-compose.fallback.yml up
+	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
 	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml down
 
 gen-certificates-staging: ## Generate staging ssl certificate via certbot
-	@$(DC_BIN) -f docker-compose.fallback.yml up
+	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
 	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --staging --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml down
 
