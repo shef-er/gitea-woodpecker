@@ -11,10 +11,11 @@ SHELL = /bin/sh
 DOCKER_BIN = $(shell command -v docker 2> /dev/null)
 DC_BIN = $(shell command -v docker-compose 2> /dev/null)
 DC_RUN_ARGS = --rm --user "$(shell id -u):$(shell id -g)"
+CERTBOT_COMMAND = certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)
 
 cwd = $(shell pwd)
 
-.PHONY : help build up down restart shell logs pull gen-dhparam gen-certificates gen-certificates-staging gen-dummy-cert
+.PHONY : help build up down restart shell logs pull gen-dhparam gen-certificates gen-certificates-staging
 .DEFAULT_GOAL : help
 
 help: ## Show this help
@@ -46,13 +47,10 @@ gen-dhparam: ## Generate dhparam
 
 gen-certificates: ## Generate ssl certificate via certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
-	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
+	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "$(CERTBOT_COMMAND)" certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml down
 
 gen-certificates-staging: ## Generate staging ssl certificate via certbot
-	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
-	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "certbot certonly --staging --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)" certbot
-	@$(DC_BIN) -f docker-compose.fallback.yml down
-
-gen-dummy-cert: ## Generate dummy ssl certificate
-	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "openssl req -x509 -nodes -days 1 -newkey rsa:$(NGINX_SSL_KEY_SIZE) -keyout '$(NGINX_SSL_KEY_FILENAME)' -out '$(NGINX_SSL_CERT_FILENAME)' -subj '/CN=$(DOMAIN)'" certbot
+	$(DC_BIN) -f docker-compose.fallback.yml up --detach
+	$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "$(CERTBOT_COMMAND) --staging" certbot
+	$(DC_BIN) -f docker-compose.fallback.yml down
