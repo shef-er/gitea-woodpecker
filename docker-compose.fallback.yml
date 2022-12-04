@@ -35,13 +35,13 @@ services:
     networks:
       - gitea
     volumes:
-      - ${NGINX_CONFIG_TEMPLATE_FILENAME}:/etc/nginx/templates/default.conf.template:ro
+      - ${NGINX_CONFIG_TEMPLATE_FILENAME}:/etc/nginx/templates/fallback.conf.template:ro
       - ${NGINX_DHPARAM_FILENAME}:/etc/nginx/ssl/dhparam-2048.pem:ro
       - ${NGINX_SSL_CERT_FILENAME}:/etc/nginx/ssl/fullchain.pem:ro
       - ${NGINX_SSL_KEY_FILENAME}:/etc/nginx/ssl/privkey.pem:ro
       - certbot:/var/www/certbot:ro
     ports:
-      - "443:443"
+      - "80:80"
 
   certbot:
     image: certbot/certbot
