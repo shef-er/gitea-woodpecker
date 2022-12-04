@@ -34,7 +34,7 @@ And fill required parameters:
 ### 4.Generate ssl certificates for your domain
 
 ```shell
-make gen-certificates
+make cert
 ```
 
 ### 5. Up your app

@@ -1,19 +1,19 @@
 version: "3.9"
 
 volumes:
-  certbot:
+  acme-challenge:
     driver: local
 
 services:
-  nginx:
+  nginx-fallback:
     image: nginx:1.23.1-alpine
-    container_name: nginx
+    container_name: nginx-fallback
     environment:
       - DOMAIN=${DOMAIN}
     restart: always
     volumes:
       - ${NGINX_CONFIG_FALLBACK_TEMPLATE_FILENAME}:/etc/nginx/templates/default.conf.template:ro
-      - certbot:/var/www/certbot:ro
+      - acme-challenge:/var/www/acme-challenge:ro
     ports:
       - "80:80"
 
@@ -21,4 +21,4 @@ services:
     image: certbot/certbot
     volumes:
       - ${LETSENCRYPT_PATH}:/etc/letsencrypt:rw
-      - certbot:/var/www/certbot:rw
+      - acme-challenge:/var/www/acme-challenge:rw

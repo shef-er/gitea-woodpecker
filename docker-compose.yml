@@ -4,6 +4,10 @@ networks:
   gitea:
     external: false
 
+volumes:
+  acme-challenge:
+    driver: local
+
 services:
   gitea:
     image: gitea/gitea:1.17.1
@@ -35,5 +39,7 @@ services:
       - ${NGINX_DHPARAM_FILENAME}:/etc/nginx/ssl/dhparam-2048.pem:ro
       - ${NGINX_SSL_CERT_FILENAME}:/etc/nginx/ssl/fullchain.pem:ro
       - ${NGINX_SSL_KEY_FILENAME}:/etc/nginx/ssl/privkey.pem:ro
+      - acme-challenge:/var/www/acme-challenge:ro
     ports:
+      - "80:80"
       - "443:443"

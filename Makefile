@@ -7,15 +7,12 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-SHELL = /bin/sh
 DOCKER_BIN = $(shell command -v docker 2> /dev/null)
 DC_BIN = $(shell command -v docker-compose 2> /dev/null)
 DC_RUN_ARGS = --rm --user "$(shell id -u):$(shell id -g)"
-CERTBOT_COMMAND = certbot certonly --agree-tos --webroot --webroot-path /var/www/certbot --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)
+CERTBOT_COMMAND = certbot certonly --agree-tos --webroot --webroot-path /var/www/acme-challenge --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)
 
-cwd = $(shell pwd)
-
-.PHONY : help build up down restart shell logs pull gen-dhparam gen-certificates gen-certificates-staging
+.PHONY : help build up down restart shell logs pull dhparam cert cert-renew
 .DEFAULT_GOAL : help
 
 help: ## Show this help
@@ -42,15 +39,14 @@ logs: ## Show docker logs
 pull: ## Pulling newer versions of used docker images
 	$(DC_BIN) pull
 
-gen-dhparam: ## Generate dhparam
+dhparam: ## Generate dhparam
 	@openssl dhparam -out $(NGINX_DHPARAM_FILENAME) $(NGINX_DHPARAM_SIZE)
 
-gen-certificates: ## Generate ssl certificate via certbot
+cert: ## Generate new ssl certificate via certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
 	@$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "$(CERTBOT_COMMAND)" certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml down
 
-gen-certificates-staging: ## Generate staging ssl certificate via certbot
-	$(DC_BIN) -f docker-compose.fallback.yml up --detach
-	$(DC_BIN) -f docker-compose.fallback.yml run --rm --entrypoint "$(CERTBOT_COMMAND) --staging" certbot
-	$(DC_BIN) -f docker-compose.fallback.yml down
+cert-renew: ## Renew ssl certificate via certbot
+	@$(DC_BIN) run --rm --entrypoint "$(CERTBOT_COMMAND)" certbot
+
