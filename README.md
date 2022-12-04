@@ -21,14 +21,24 @@ usermod -s /home/git/docker-shell git
 
 ### 3. Copy `.env` file from `.env.example` provided in repo
 
+```shell
+cp .env.example .env
+```
+
 And fill required parameters:
 - `USER_UID`
 - `USER_GID`
 - `DOMAIN`
 - `EMAIL`
 
+### 4.Generate ssl certificates for your domain
+
 ```shell
-cp .env.example .env
+make gen-certificates
 ```
 
-... to be continued
+### 5. Up your app
+
+```shell
+make up
+```
