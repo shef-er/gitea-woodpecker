@@ -10,7 +10,6 @@ services:
     container_name: nginx-fallback
     environment:
       - DOMAIN=${DOMAIN}
-    restart: always
     volumes:
       - ${NGINX_CONFIG_FALLBACK_TEMPLATE_FILENAME}:/etc/nginx/templates/default.conf.template:ro
       - acme-challenge:/var/www/acme-challenge:ro
