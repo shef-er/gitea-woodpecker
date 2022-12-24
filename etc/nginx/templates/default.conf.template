@@ -33,37 +33,37 @@ server {
     }
 }
 
-server {
-    listen 80;
-    listen [::]:80;
-
-    server_name ${DOMAIN_CI};
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/acme-challenge;
-    }
-
-    location / {
-        return 301 https://$host$request_uri;
-    }
-}
-
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-
-    server_name ${DOMAIN_CI};
-
-    ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_CI}/fullchain.pem;
-    ssl_certificate         /etc/letsencrypt/live/${DOMAIN_CI}/fullchain.pem;
-    ssl_certificate_key     /etc/letsencrypt/live/${DOMAIN_CI}/privkey.pem;
-
-    location / {
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-
-        proxy_pass http://woodpecker-server:9000;
-    }
-}
+#server {
+#    listen 80;
+#    listen [::]:80;
+#
+#    server_name ${DOMAIN_CI};
+#
+#    location /.well-known/acme-challenge/ {
+#        root /var/www/acme-challenge;
+#    }
+#
+#    location / {
+#        return 301 https://$host$request_uri;
+#    }
+#}
+#
+#server {
+#    listen 443 ssl http2;
+#    listen [::]:443 ssl http2;
+#
+#    server_name ${DOMAIN_CI};
+#
+#    ssl_trusted_certificate /etc/letsencrypt/live/${DOMAIN_CI}/fullchain.pem;
+#    ssl_certificate         /etc/letsencrypt/live/${DOMAIN_CI}/fullchain.pem;
+#    ssl_certificate_key     /etc/letsencrypt/live/${DOMAIN_CI}/privkey.pem;
+#
+#    location / {
+#        proxy_set_header Host $host;
+#        proxy_set_header X-Real-IP $remote_addr;
+#        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#        proxy_set_header X-Forwarded-Proto $scheme;
+#
+#        proxy_pass http://woodpecker-server:9000;
+#    }
+#}
