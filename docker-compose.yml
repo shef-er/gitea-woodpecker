@@ -49,8 +49,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /home/git/.ssh:/data/git/.ssh:rw
       - ./data:/data:rw
-    ports:
-      - "2222:22"
+#    ports:
+#      - "2222:22"
 
   woodpecker-server:
     image: woodpeckerci/woodpecker-server:v0.15.6-alpine
@@ -58,10 +58,10 @@ services:
       - WOODPECKER_OPEN=true
       - WOODPECKER_HOST=${WOODPECKER_HOST}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
-      - WOODPECKER_GITEA=true
-      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
-      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
-      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
+#      - WOODPECKER_GITEA=true
+#      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
+#      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
+#      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
     restart: always
     depends_on:
       - gitea
