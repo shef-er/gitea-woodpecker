@@ -70,7 +70,7 @@ services:
     volumes:
       - woodpecker-server-data:/var/lib/woodpecker/
     ports:
-      - "9000:9000"
+      - "8000:8000"
 
   woodpecker-agent:
     image: woodpeckerci/woodpecker-agent:v0.15.6-alpine
