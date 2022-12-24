@@ -1,4 +1,6 @@
 data/
 .env
 
+etc/nginx/dhparam.pem
+
 .idea/

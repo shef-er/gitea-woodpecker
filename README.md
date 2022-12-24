@@ -42,3 +42,28 @@ make cert
 ```shell
 make up
 ```
+
+
+# Steps overview
+
+1. Setup host git user
+    1. Create host machine git user to use ssh connections
+    2. Docker ssh shell setup
+
+2. Setup nginx with SSL  
+    1. `cp .env.example .env`
+    2. Add your git user uid and gid, email and domain names to .env
+    3. `cp /etc/nginx/templates_dist/fallback.conf.template /etc/nginx/templates/`
+    4. Set up `docker-compose.fallback.yml` and `docker-compose.certbot.yml`  
+    5. Generate certs with certbot  
+    6. Bring down all containers  
+
+3. Set up Gitea
+    1. `cp /etc/nginx/templates_dist/gitea.conf.template /etc/nginx/templates/`
+    2. Run `docker-compose.yml`  
+    3. Setup gitea admin user and get OAuth credentials for Woodpecker
+
+4. Set up Woodpecker
+    1. Add Gitea credentials to Woodpecker env vars and get AGENT_SECRET from `openssl rand -hex 32`
+    2. `cp /etc/nginx/templates_dist/woodpecker.conf.template /etc/nginx/templates/`
+    3. Restart `docker-compose.yml`

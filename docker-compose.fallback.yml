@@ -5,19 +5,16 @@ volumes:
     driver: local
 
 services:
-  nginx-fallback:
+
+  fallback:
     image: nginx:1.23.1-alpine
-    container_name: nginx-fallback
+    container_name: fallback
     environment:
-      - DOMAIN=${DOMAIN}
+      - DOMAIN_GITEA=${DOMAIN_GITEA}
+      - DOMAIN_WOODPECKER=${DOMAIN_WOODPECKER}
     volumes:
-      - ./etc/nginx/templates/fallback.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./etc/nginx/templates:/etc/nginx/templates:ro
+      - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - acme-challenge:/var/www/acme-challenge:ro
     ports:
       - "80:80"
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./etc/letsencrypt:/etc/letsencrypt:rw
-      - acme-challenge:/var/www/acme-challenge:rw

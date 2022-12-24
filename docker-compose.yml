@@ -5,9 +5,9 @@ networks:
     external: false
 
 volumes:
-  woodpecker-server-data:
-    driver: local
   acme-challenge:
+    driver: local
+  woodpecker-server-data:
     driver: local
 
 services:
@@ -16,17 +16,14 @@ services:
     image: nginx:1.23.1-alpine
     container_name: nginx
     environment:
-      - DOMAIN=${DOMAIN}
-      - DOMAIN_CI=${DOMAIN_CI}
+      - DOMAIN_GITEA=${DOMAIN_GITEA}
+      - DOMAIN_WOODPECKER=${DOMAIN_WOODPECKER}
     restart: always
-    depends_on:
-      - gitea
-      - woodpecker-server
     networks:
       - internal
     volumes:
+      - ./etc/nginx/templates:/etc/nginx/templates:ro
       - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./etc/nginx/templates/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./etc/nginx/dhparam.pem:/etc/nginx/dhparam.pem:ro
       - ./etc/letsencrypt:/etc/letsencrypt:ro
       - acme-challenge:/var/www/acme-challenge:ro
@@ -38,8 +35,8 @@ services:
     image: gitea/gitea:1.17.4
     container_name: gitea
     environment:
-      - USER_UID=${USER_UID}
-      - USER_GID=${USER_GID}
+      - USER_UID=${GIT_USER_UID}
+      - USER_GID=${GIT_USER_GID}
       - GITEA__webhook__ALLOWED_HOST_LIST=external,loopback
     restart: always
     networks:
@@ -49,8 +46,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /home/git/.ssh:/data/git/.ssh:rw
       - ./data:/data:rw
-#    ports:
-#      - "2222:22"
 
   woodpecker-server:
     image: woodpeckerci/woodpecker-server:v0.15.6-alpine
@@ -58,10 +53,10 @@ services:
       - WOODPECKER_OPEN=true
       - WOODPECKER_HOST=${WOODPECKER_HOST}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
-#      - WOODPECKER_GITEA=true
-#      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
-#      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
-#      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
+      - WOODPECKER_GITEA=true
+      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
+      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
+      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
     restart: always
     depends_on:
       - gitea

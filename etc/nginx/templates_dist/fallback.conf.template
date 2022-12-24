@@ -1,0 +1,29 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${DOMAIN_GITEA};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/acme-challenge;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${DOMAIN_WOODPECKER};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/acme-challenge;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
