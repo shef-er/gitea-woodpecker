@@ -19,5 +19,5 @@ services:
   certbot:
     image: certbot/certbot
     volumes:
-      - ${LETSENCRYPT_PATH}:/etc/letsencrypt:rw
+      - ./etc/letsencrypt:/etc/letsencrypt:rw
       - acme-challenge:/var/www/acme-challenge:rw
