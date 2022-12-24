@@ -21,6 +21,7 @@ services:
     restart: always
     depends_on:
       - gitea
+      - woodpecker-server
     networks:
       - internal
     volumes:
@@ -39,6 +40,7 @@ services:
     environment:
       - USER_UID=${USER_UID}
       - USER_GID=${USER_GID}
+      - GITEA__webhook__ALLOWED_HOST_LIST=external,loopback
     restart: always
     networks:
       - internal
@@ -56,11 +58,13 @@ services:
       - WOODPECKER_OPEN=true
       - WOODPECKER_HOST=${WOODPECKER_HOST}
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
-#      - WOODPECKER_GITEA=true
-#      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
-#      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
-#      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
+      - WOODPECKER_GITEA=true
+      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
+      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
+      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
     restart: always
+    depends_on:
+      - gitea
     networks:
       - internal
     volumes:
@@ -76,7 +80,7 @@ services:
       - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
     restart: always
     depends_on:
-      - "woodpecker-server"
+      - woodpecker-server
     networks:
       - internal
     volumes:
