@@ -10,7 +10,8 @@ endif
 DOCKER_BIN = $(shell command -v docker 2> /dev/null)
 DC_BIN = $(shell command -v docker-compose 2> /dev/null)
 DC_RUN_ARGS = --rm --user "$(shell id -u):$(shell id -g)"
-CERTBOT_COMMAND = certbot certonly --agree-tos --webroot --webroot-path /var/www/acme-challenge --rsa-key-size $(NGINX_SSL_KEY_SIZE) --email $(EMAIL) -d $(DOMAIN)
+
+CERTBOT_COMMAND = certbot certonly --agree-tos --webroot --webroot-path /var/www/acme-challenge --rsa-key-size 4096 --email $(EMAIL) -d $(DOMAIN)
 
 .PHONY : help build up down restart shell logs pull dhparam cert cert-renew
 .DEFAULT_GOAL : help
@@ -40,7 +41,7 @@ pull: ## Pulling newer versions of used docker images
 	$(DC_BIN) pull
 
 dhparam: ## Generate dhparam
-	@openssl dhparam -out $(NGINX_DHPARAM_FILENAME) $(NGINX_DHPARAM_SIZE)
+	@openssl dhparam -out ./etc/nginx/dhparam.pem 2048
 
 cert: ## Generate new ssl certificate via certbot
 	@$(DC_BIN) -f docker-compose.fallback.yml up --detach
