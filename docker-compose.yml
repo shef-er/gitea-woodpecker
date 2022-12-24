@@ -1,10 +1,12 @@
 version: "3.9"
 
 networks:
-  gitea:
+  internal:
     external: false
 
 volumes:
+  woodpecker-server-data:
+    driver: local
   acme-challenge:
     driver: local
 
@@ -15,11 +17,12 @@ services:
     container_name: nginx
     environment:
       - DOMAIN=${DOMAIN}
+      - DOMAIN_CI=${DOMAIN_CI}
     restart: always
     depends_on:
-      - "gitea"
-    networks:
       - gitea
+    networks:
+      - internal
     volumes:
       - ./etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./etc/nginx/templates/default.conf.template:/etc/nginx/templates/default.conf.template:ro
@@ -38,11 +41,44 @@ services:
       - USER_GID=${USER_GID}
     restart: always
     networks:
-      - gitea
+      - internal
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
       - /home/git/.ssh:/data/git/.ssh:rw
       - ./data:/data:rw
     ports:
-      - "127.0.0.1:2222:22"
+      - "2222:22"
+
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:v0.15.6-alpine
+    environment:
+      - WOODPECKER_OPEN=true
+      - WOODPECKER_HOST=${WOODPECKER_HOST}
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+#      - WOODPECKER_GITEA=true
+#      - WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}
+#      - WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}
+#      - WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}
+    restart: always
+    networks:
+      - internal
+    volumes:
+      - woodpecker-server-data:/var/lib/woodpecker/
+#    ports:
+#      - "9000:9000"
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:v0.15.6-alpine
+    command: agent
+    environment:
+      - WOODPECKER_SERVER=woodpecker-server:9000
+      - WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}
+    restart: always
+    depends_on:
+      - "woodpecker-server"
+    networks:
+      - internal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+

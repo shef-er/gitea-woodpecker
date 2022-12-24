@@ -1,6 +1,4 @@
-.idea
+data/
 .env
-data
-cert.pem
-cert.key
-docker-compose.override.yml
+
+.idea/
