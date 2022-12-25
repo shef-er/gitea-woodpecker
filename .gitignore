@@ -1,6 +1,6 @@
-.idea
+data/
 .env
-data
-cert.pem
-cert.key
-docker-compose.override.yml
+
+etc/nginx/dhparam.pem
+
+.idea/
