@@ -50,6 +50,11 @@ More at Gitea docs: [Docker shell with authorized_keys](https://docs.gitea.io/en
 
 ### Set up Gitea
 
+```shell
+echo "GIT_USER_UID=$(id -u git)"
+echo "GIT_USER_GID=$(id -g git)"
+```
+
  1. Fill `GIT_USER_UID`, `GIT_USER_GID` vars in .env
  2. `cp ./etc/nginx/templates_dist/gitea.conf.template ./etc/nginx/templates/`
  3. `make up` / `docker-compose up -d`  
