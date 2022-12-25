@@ -63,9 +63,7 @@ services:
     networks:
       - internal
     volumes:
-      - woodpecker-server-data:/var/lib/woodpecker/
-    ports:
-      - "8000:8000"
+      - woodpecker-server-data:/var/lib/woodpecker
 
   woodpecker-agent:
     image: woodpeckerci/woodpecker-agent:v0.15.6-alpine
