@@ -30,3 +30,7 @@ restart: down up ## Restart all containers
 .PHONY: logs
 logs: ## Show docker logs
 	$(DC_BIN) logs --follow
+
+.PHONY: setup
+setup: ## Run setup script
+	sh setup.sh

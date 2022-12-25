@@ -1,5 +1,6 @@
 data/
 .env
+.env.tmp
 
 etc/nginx/dhparam.pem
 
