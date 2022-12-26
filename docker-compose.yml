@@ -55,10 +55,10 @@ services:
       - "traefik.http.routers.gitea.tls=true"
       - "traefik.http.routers.gitea.tls.certresolver=letsencrypt"
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.gitea.compress=true"
       - "traefik.http.routers.gitea-insecure.rule=Host(`${DOMAIN_GITEA}`)"
       - "traefik.http.routers.gitea-insecure.entrypoints=web"
-      - "traefik.http.routers.gitea-insecure.middlewares=gitea-redirect"
-      - "traefik.http.middlewares.gitea-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.gitea-insecure.redirectscheme.scheme=https"
 
   woodpecker:
     image: woodpeckerci/woodpecker-server:v0.15.6-alpine
@@ -85,10 +85,10 @@ services:
       - "traefik.http.routers.woodpecker.tls=true"
       - "traefik.http.routers.woodpecker.tls.certresolver=letsencrypt"
       - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.woodpecker.compress=true"
       - "traefik.http.routers.woodpecker-insecure.rule=Host(`${DOMAIN_WOODPECKER}`)"
       - "traefik.http.routers.woodpecker-insecure.entrypoints=web"
-      - "traefik.http.routers.woodpecker-insecure.middlewares=woodpecker-redirect"
-      - "traefik.http.middlewares.woodpecker-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.woodpecker-insecure.redirectscheme.scheme=https"
 
   woodpecker-agent:
     image: woodpeckerci/woodpecker-agent:v0.15.6-alpine
