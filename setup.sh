@@ -1,108 +1,79 @@
 #!/bin/env bash
 
-
-setup_nginx() {
-  echo -n "Enter EMAIL value: "; read -r EMAIL
-  echo -n "Enter DOMAIN_GITEA value: "; read -r DOMAIN_GITEA
-  echo -n "Enter DOMAIN_WOODPECKER value: "; read -r DOMAIN_WOODPECKER
-
-  cat .env \
-    | sed -e "s#EMAIL=#EMAIL=$EMAIL#g" \
-    | sed -e "s#DOMAIN_GITEA=#DOMAIN_GITEA=$DOMAIN_GITEA#g" \
-    | sed -e "s#DOMAIN_WOODPECKER=#DOMAIN_WOODPECKER=$DOMAIN_WOODPECKER#g" \
-    > .env.tmp
-  mv .env.tmp .env
-
-  cp etc/nginx/templates_dist/fallback.conf.template etc/nginx/templates/
-
-  docker-compose -f docker-compose.fallback.yml -f docker-compose.certbot.yml up --detach
-  docker-compose -f docker-compose.fallback.yml -f docker-compose.certbot.yml run --rm --entrypoint "\
-    certbot certonly --agree-tos \
-      --webroot --webroot-path /var/www/acme-challenge \
-      --rsa-key-size 4096 \
-      --email $EMAIL \
-      -d $DOMAIN_GITEA \
-      -d $DOMAIN_WOODPECKER \
-    " certbot
-  docker-compose -f docker-compose.fallback.yml -f docker-compose.certbot.yml down
-
-  openssl dhparam -out etc/nginx/dhparam.pem 2048
+print_header() {
+  echo
+  echo " ${1:-}"
 }
 
+print_text_n() {
+  echo -n "   ${1:-}"
+}
 
-setup_git_user() {
-  adduser --system \
-    --shell /bin/bash \
-    --gecos 'Git Version Control' \
-    --group \
-    --disabled-password \
-    --home /home/git \
-    git
+print_text() {
+  print_text_n "${1:-}"
+  echo
+}
+
+[ ! -f .env ] && cp .env.example .env
+
+print_header "SSL certs settings"
+print_text_n "Your email: "; read -r EMAIL
+print_text_n "Gitea instance domain name: "; read -r DOMAIN_GITEA
+print_text_n "Woodpecker CI instance domain name: "; read -r DOMAIN_WOODPECKER
+
+cat .env \
+  | sed -e "s#EMAIL=#EMAIL=$EMAIL#g" \
+  | sed -e "s#DOMAIN_GITEA=#DOMAIN_GITEA=$DOMAIN_GITEA#g" \
+  | sed -e "s#DOMAIN_WOODPECKER=#DOMAIN_WOODPECKER=$DOMAIN_WOODPECKER#g" \
+  > .env.tmp
+mv .env.tmp .env
+
+print_header "Git user setup"
+if ! id -u "git" >/dev/null 2>&1; then
+  print_text "Creating 'git' user"
+  adduser --system --shell /bin/bash --gecos 'Git Version Control' --group --disabled-password --home /home/git git
   usermod -aG docker git
 
-  # Docker shell with authorized_keys:
-  # https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys
+  print_text "Setting up SSH access to Gitea instance inside Docker using:"
+  print_text "https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys"
   cp ../dist/docker-shell /home/git/docker-shell
   chmod +x /home/git/docker-shell
   usermod -s /home/git/docker-shell git
-}
+else
+  print_text "User 'git' already exist. Skipping..."
+fi
+
+cat .env \
+  | sed -e "s#GIT_USER_UID=#GIT_USER_UID=$(id -u git)#g" \
+  | sed -e "s#GIT_USER_GID=#GIT_USER_GID=$(id -g git)#g" \
+  > .env.tmp
+mv .env.tmp .env
 
 
-setup_gitea() {
-  cat .env \
-    | sed -e "s#GIT_USER_UID=#GIT_USER_UID=$(id -u git)#g" \
-    | sed -e "s#GIT_USER_GID=#GIT_USER_GID=$(id -g git)#g" \
-    > .env.tmp
-  mv .env.tmp .env
+print_header "Starting Docker containers"
+docker-compose up -d
 
-  cp etc/nginx/templates_dist/gitea.conf.template etc/nginx/templates/
-  docker-compose up -d
+print_header "Woodpecker CI setup"
+print_text "1. Open https://$DOMAIN_GITEA and setup your Gitea instance"
+print_text "2. Go to Settings -> Applications -> Manage OAuth2 Applications -> Create a new OAuth2 Application"
+print_text
+print_text "Application Name:    Woodpecker CI"
+print_text "Redirect URI:        https://$DOMAIN_WOODPECKER/authorize"
+print_text
+print_text "3. Enter the received secrets:"
+print_text_n "Client ID: "; read -r WOODPECKER_GITEA_CLIENT
+print_text_n "Client Secret: "; read -r WOODPECKER_GITEA_SECRET
 
-  echo "Setup gitea admin user and get OAuth credentials for Woodpecker CI"
-}
+cat .env \
+  | sed -e "s#WOODPECKER_AGENT_SECRET=#WOODPECKER_AGENT_SECRET=$(openssl rand -hex 32)#g" \
+  | sed -e "s#WOODPECKER_GITEA_CLIENT=#WOODPECKER_GITEA_CLIENT=$WOODPECKER_GITEA_CLIENT#g" \
+  | sed -e "s#WOODPECKER_GITEA_SECRET=#WOODPECKER_GITEA_SECRET=$WOODPECKER_GITEA_SECRET#g" \
+  > .env.tmp
+mv .env.tmp .env
 
+print_header "Restarting Docker containers"
+docker-compose up -d
 
-setup_woodpecker() {
-  WOODPECKER_AGENT_SECRET="$(openssl rand -hex 32)"
-  echo -n "Enter WOODPECKER_GITEA_CLIENT value"; read -r WOODPECKER_GITEA_CLIENT
-  echo -n "Enter WOODPECKER_GITEA_SECRET value"; read -r WOODPECKER_GITEA_SECRET
-
-  cat .env \
-    | sed -e "s#WOODPECKER_AGENT_SECRET=#WOODPECKER_AGENT_SECRET=$WOODPECKER_AGENT_SECRET#g" \
-    | sed -e "s#WOODPECKER_GITEA_CLIENT=#WOODPECKER_GITEA_CLIENT=$WOODPECKER_GITEA_CLIENT#g" \
-    | sed -e "s#WOODPECKER_GITEA_SECRET=#WOODPECKER_GITEA_SECRET=$WOODPECKER_GITEA_SECRET#g" \
-    > .env.tmp
-  mv .env.tmp .env
-
-  cp etc/nginx/templates_dist/woodpecker.conf.template etc/nginx/templates/
-  docker-compose down
-  docker-compose up -d
-}
-
-
-case ${1:-} in
-  "nginx")
-    setup_nginx
-    ;;
-
-  "git-user")
-    setup_git_user
-    ;;
-
-  "gitea")
-    setup_gitea
-    ;;
-
-  "woodpecker")
-    setup_woodpecker
-    ;;
-
-  *)
-    [ ! -f .env ] && cp .env.example .env
-    setup_nginx
-    setup_git_user
-    setup_gitea
-    setup_woodpecker
-    echo "All done!"
-    ;;
-esac
+print_header "All done!"
+print_text "Gitea: https://$DOMAIN_GITEA"
+print_text "Woodpecker CI: https://$DOMAIN_WOODPECKER"
