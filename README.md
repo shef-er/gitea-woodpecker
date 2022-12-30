@@ -1,3 +1,3 @@
-# Gitea: Git with a cup of tea
+# Forgejo
 
 Run `make setup` and follow instructions
