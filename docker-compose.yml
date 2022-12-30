@@ -34,7 +34,7 @@ services:
       - "443:443"
 
   forgejo:
-    image: "codeberg.org/forgejo/forgejo:1.18"
+    image: "codeberg.org/forgejo/forgejo:1.18.0-1"
     container_name: "forgejo"
     environment:
       - "USER_UID=${GIT_USER_UID}"
