@@ -82,15 +82,12 @@ services:
       traefik.enable: "true"
       traefik.http.routers.woodpecker.rule: "Host(`${DOMAIN_WOODPECKER}`)"
       traefik.http.routers.woodpecker.entrypoints: "websecure"
-      traefik.http.routers.woodpecker.tls: "true"
       traefik.http.routers.woodpecker.tls.certresolver: "letsencrypt"
-      traefik.http.services.woodpecker.loadbalancer.server.port: "3000"
-      traefik.http.middlewares.woodpecker.compress: "true"
-      traefik.http.middlewares.woodpecker.headers.framedeny: "true"
-      traefik.http.middlewares.woodpecker.headers.browserxssfilter: "true"
+      traefik.http.routers.woodpecker.middlewares: "hsts@file, compress@file"
+      traefik.http.services.woodpecker.loadbalancer.server.port: "8000"
       traefik.http.routers.woodpecker-insecure.rule: "Host(`${DOMAIN_WOODPECKER}`)"
       traefik.http.routers.woodpecker-insecure.entrypoints: "web"
-      traefik.http.middlewares.woodpecker-insecure.redirectscheme.scheme: "https"
+      traefik.http.routers.woodpecker-insecure.middlewares: "redirect@file"
 
   woodpecker-agent:
     image: "woodpeckerci/woodpecker-agent:v0.15.6-alpine"
