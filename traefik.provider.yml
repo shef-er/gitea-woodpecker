@@ -1,6 +1,7 @@
 tls:
   options:
     default:
+      sniStrict: true
       minVersion: VersionTLS12
       curvePreferences:
         - X25519
