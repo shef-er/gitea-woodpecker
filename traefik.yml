@@ -1,0 +1,61 @@
+providers:
+  docker:
+    exposedByDefault: false
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      httpChallenge:
+        entryPoint: "web"
+      storage: "/letsencrypt/acme.json"
+      email: ""
+#
+#http:
+#  middlewares:
+#    redirect:
+#      redirectScheme:
+#        scheme: https
+#
+#    hsts:
+#      headers:
+#        frameDeny: true
+#        contentTypeNosniff: true
+#        browserXssFilter: true
+#        forceSTSHeader: true
+#        sslRedirect: true
+#        stsPreload: true
+#        stsSeconds: 315360000
+#        stsIncludeSubdomains: true
+#
+#    secure:
+#      chain:
+#        middlewares:
+#          - redirect
+#          - hsts
+#
+#tls:
+#  options:
+#    default:
+#      minVersion: VersionTLS12
+#      curvePreferences:
+#        - X25519
+#        - CurveP521
+#        - CurveP384
+#      cipherSuites:
+#        # TLS v1.3
+#        - TLS_AES_128_GCM_SHA256
+#        - TLS_AES_256_GCM_SHA384
+#        - TLS_CHACHA20_POLY1305_SHA256
+#        # TLS v1.2
+#        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+#        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+#        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+#        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
