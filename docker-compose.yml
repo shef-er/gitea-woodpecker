@@ -53,7 +53,7 @@ services:
       traefik.http.routers.forgejo.rule: "Host(`${DOMAIN_FORGEJO}`)"
       traefik.http.routers.forgejo.entrypoints: "websecure"
       traefik.http.routers.forgejo.tls.certresolver: "letsencrypt"
-      traefik.http.routers.forgejo.middlewares: "hsts, compress"
+      traefik.http.routers.forgejo.middlewares: "hsts, compress@file"
       traefik.http.services.forgejo.loadbalancer.server.port: "3000"
 #      traefik.http.middlewares.forgejo.compress: "true"
 #      traefik.http.middlewares.forgejo.headers.framedeny: "true"
