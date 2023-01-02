@@ -1,6 +1,14 @@
+log:
+  level: WARN
+  # level: INFO
+
 providers:
   docker:
     exposedByDefault: false
+    watch: true
+  file:
+    filename: "./traefik.yml"
+    watch: true
 
 entryPoints:
   web:
@@ -14,7 +22,7 @@ certificatesResolvers:
       httpChallenge:
         entryPoint: "web"
       storage: "/letsencrypt/acme.json"
-      email: ""
+#      email: ""
 #
 #http:
 #  middlewares:
