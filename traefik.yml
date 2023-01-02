@@ -10,20 +10,20 @@ providers:
     filename: "./traefik.yml"
     watch: true
 
-entryPoints:
-  web:
-    address: ":80"
-  websecure:
-    address: ":443"
+#entryPoints:
+#  web:
+#    address: ":80"
+#  websecure:
+#    address: ":443"
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      httpChallenge:
-        entryPoint: "web"
-      storage: "/letsencrypt/acme.json"
+#certificatesResolvers:
+#  letsencrypt:
+#    acme:
+#      httpChallenge:
+#        entryPoint: "web"
+#      storage: "/letsencrypt/acme.json"
 #      email: ""
-#
+
 #http:
 #  middlewares:
 #    redirect:
@@ -46,7 +46,7 @@ certificatesResolvers:
 #        middlewares:
 #          - redirect
 #          - hsts
-#
+
 #tls:
 #  options:
 #    default:

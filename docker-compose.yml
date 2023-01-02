@@ -15,12 +15,12 @@ services:
     command:
       #- "--log.level=DEBUG"
 #      - "--providers.docker=true"
-#      - "--providers.docker.exposedbydefault=false"
-#      - "--entrypoints.web.address=:80"
-#      - "--entrypoints.websecure.address=:443"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
 #      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-#      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-#      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
     restart: "unless-stopped"
     networks:
