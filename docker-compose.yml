@@ -50,7 +50,7 @@ services:
       - "./data:/data:rw"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.forgejo.rule: "HostSNI(`${DOMAIN_FORGEJO}`)"
+      traefik.http.routers.forgejo.rule: "Host(`${DOMAIN_FORGEJO}`)"
       traefik.http.routers.forgejo.entrypoints: "websecure"
       traefik.http.routers.forgejo.tls.certresolver: "letsencrypt"
       traefik.http.routers.forgejo.middlewares: "hsts@file, compress@file"
