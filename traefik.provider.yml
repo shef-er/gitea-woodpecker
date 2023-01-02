@@ -35,3 +35,7 @@ http:
         stsPreload: true
         stsIncludeSubdomains: true
         stsSeconds: 315360000
+
+    compress:
+      compress:
+        minResponseBodyBytes: 1024
