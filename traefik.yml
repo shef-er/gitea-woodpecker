@@ -10,11 +10,17 @@ providers:
     filename: "./traefik.yml"
     watch: true
 
-#entryPoints:
-#  web:
-#    address: ":80"
-#  websecure:
-#    address: ":443"
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+  websecure:
+    address: ":443"
 
 #certificatesResolvers:
 #  letsencrypt:
