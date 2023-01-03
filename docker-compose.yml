@@ -61,7 +61,6 @@ services:
       traefik.http.routers.forgejo-insecure.entrypoints: "web"
       traefik.http.routers.forgejo-insecure.middlewares: "redirect@file"
 
-
   woodpecker:
     image: "woodpeckerci/woodpecker-server:v0.15.6-alpine"
     container_name: "woodpecker"
