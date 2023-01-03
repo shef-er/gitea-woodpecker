@@ -5,6 +5,8 @@ networks:
     external: false
 
 volumes:
+  acme-storage:
+    driver: local
   woodpecker-data:
     driver: local
 
@@ -13,7 +15,7 @@ services:
     image: "traefik:v2.9"
     container_name: "traefik"
     command:
-      - "--log.level=DEBUG"
+#      - "--log.level=DEBUG"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.filename=/traefik.provider.yml"
       - "--providers.file.watch=true"
@@ -26,9 +28,9 @@ services:
     networks:
       - "internal"
     volumes:
-      - "./letsencrypt:/letsencrypt"
       - "./traefik.provider.yml:/traefik.provider.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "acme-storage:/letsencrypt"
     ports:
       - "80:80"
       - "443:443"
