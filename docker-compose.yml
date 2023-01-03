@@ -42,7 +42,6 @@ services:
       USER_UID: "${GIT_USER_UID}"
       USER_GID: "${GIT_USER_GID}"
       GITEA__webhook__ALLOWED_HOST_LIST: "external,loopback"
-      GITEA__locale__LANGS: "en-US, ru-RU"
     restart: "unless-stopped"
     networks:
       - "internal"
