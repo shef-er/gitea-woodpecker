@@ -49,19 +49,19 @@ fi
 echo
 bold "SSL settings"
 read_env "- Your email: " EMAIL
-read_env "- Forgejo instance domain: " DOMAIN_FORGEJO
+read_env "- Gitea instance domain: " DOMAIN_GITEA
 read_env "- Woodpecker CI instance domain: " DOMAIN_WOODPECKER
 
 echo
-bold "Forgejo setup"
+bold "Gitea setup"
 if ! id -u git >/dev/null 2>&1; then
-  echo "Setting up SSH access to Forgejo instance inside Docker using:"
+  echo "Setting up SSH access to Gitea instance inside Docker using:"
   echo "https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys"
 
   mkdir -p "/home/git"
   cat << "EOF" | tee "/home/git/shell"
 #!/bin/sh
-/usr/bin/docker exec -i -u git --env SSH_ORIGINAL_COMMAND="$SSH_ORIGINAL_COMMAND" forgejo sh "$@"
+/usr/bin/docker exec -i -u git --env SSH_ORIGINAL_COMMAND="$SSH_ORIGINAL_COMMAND" gitea sh "$@"
 EOF
   chmod +x "/home/git/shell"
 
@@ -81,7 +81,7 @@ docker-compose up -d
 
 echo
 bold "Woodpecker CI setup"
-echo "1. Open https://$DOMAIN_FORGEJO and setup your Forgejo instance"
+echo "1. Open https://$DOMAIN_GITEA and setup your Gitea instance"
 echo "2. Go to Settings -> Applications -> Manage OAuth2 Applications -> Create a new OAuth2 Application"
 echo
 echo "Application Name:    Woodpecker CI"
@@ -100,5 +100,5 @@ docker-compose up -d
 
 echo
 bold "All done!"
-echo "- Forgejo:       https://$DOMAIN_FORGEJO"
+echo "- Gitea:         https://$DOMAIN_GITEA"
 echo "- Woodpecker CI: https://$DOMAIN_WOODPECKER"

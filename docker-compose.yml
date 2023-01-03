@@ -35,9 +35,9 @@ services:
       - "80:80"
       - "443:443"
 
-  forgejo:
-    image: "codeberg.org/forgejo/forgejo:1.18.0-1"
-    container_name: "forgejo"
+  gitea:
+    image: "gitea/gitea:1.18.0"
+    container_name: "gitea"
     environment:
       USER_UID: "${GIT_USER_UID}"
       USER_GID: "${GIT_USER_GID}"
@@ -52,14 +52,14 @@ services:
       - "./data:/data:rw"
     labels:
       traefik.enable: "true"
-      traefik.http.routers.forgejo.rule: "Host(`${DOMAIN_FORGEJO}`)"
-      traefik.http.routers.forgejo.entrypoints: "websecure"
-      traefik.http.routers.forgejo.tls.certresolver: "letsencrypt"
-      traefik.http.routers.forgejo.middlewares: "hsts@file, compress@file"
-      traefik.http.services.forgejo.loadbalancer.server.port: "3000"
-      traefik.http.routers.forgejo-insecure.rule: "Host(`${DOMAIN_FORGEJO}`)"
-      traefik.http.routers.forgejo-insecure.entrypoints: "web"
-      traefik.http.routers.forgejo-insecure.middlewares: "redirect@file"
+      traefik.http.routers.gitea.rule: "Host(`${DOMAIN_GITEA}`)"
+      traefik.http.routers.gitea.entrypoints: "websecure"
+      traefik.http.routers.gitea.tls.certresolver: "letsencrypt"
+      traefik.http.routers.gitea.middlewares: "hsts@file, compress@file"
+      traefik.http.services.gitea.loadbalancer.server.port: "3000"
+      traefik.http.routers.gitea-insecure.rule: "Host(`${DOMAIN_GITEA}`)"
+      traefik.http.routers.gitea-insecure.entrypoints: "web"
+      traefik.http.routers.gitea-insecure.middlewares: "redirect@file"
 
   woodpecker:
     image: "woodpeckerci/woodpecker-server:v0.15.6-alpine"
@@ -74,7 +74,7 @@ services:
       WOODPECKER_GITEA_SECRET: "${WOODPECKER_GITEA_SECRET}"
     restart: "unless-stopped"
     depends_on:
-      - "forgejo"
+      - "gitea"
     networks:
       - "internal"
     volumes:
