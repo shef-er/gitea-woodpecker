@@ -36,7 +36,7 @@ if ! id -u "git" >/dev/null 2>&1; then
 
   print_text "Setting up SSH access to Forgejo instance inside Docker using:"
   print_text "https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys"
-  cp ../dist/docker-shell /home/git/docker-shell
+  cp ./docker-shell /home/git/docker-shell
   chmod +x /home/git/docker-shell
   usermod -s /home/git/docker-shell git
 else
