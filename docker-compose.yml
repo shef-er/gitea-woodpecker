@@ -5,41 +5,43 @@ networks:
     external: false
 
 volumes:
+  acme-storage:
+    driver: local
   woodpecker-data:
     driver: local
 
 services:
-  reverse-proxy:
+  traefik:
     image: "traefik:v2.9"
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
+#      - "--log.level=DEBUG"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.filename=/traefik.provider.yml"
+      - "--providers.file.watch=true"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.email=${EMAIL}"
     restart: "unless-stopped"
     networks:
       - "internal"
     volumes:
-      - "./letsencrypt:/letsencrypt"
+      - "./traefik.provider.yml:/traefik.provider.yml:ro"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "acme-storage:/letsencrypt"
     ports:
       - "80:80"
       - "443:443"
 
-  forgejo:
-    image: "codeberg.org/forgejo/forgejo:1.18.0-1"
-    container_name: "forgejo"
+  gitea:
+    image: "gitea/gitea:1.18.0"
+    container_name: "gitea"
     environment:
-      - "USER_UID=${GIT_USER_UID}"
-      - "USER_GID=${GIT_USER_GID}"
-      - "GITEA__webhook__ALLOWED_HOST_LIST=external,loopback"
+      USER_UID: "${GIT_USER_UID}"
+      USER_GID: "${GIT_USER_GID}"
+      GITEA__webhook__ALLOWED_HOST_LIST: "external,loopback"
     restart: "unless-stopped"
     networks:
       - "internal"
@@ -49,28 +51,27 @@ services:
       - "/home/git/.ssh:/data/git/.ssh:rw"
       - "./data:/data:rw"
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.forgejo.rule=Host(`${DOMAIN_FORGEJO}`)"
-      - "traefik.http.routers.forgejo.entrypoints=websecure"
-      - "traefik.http.routers.forgejo.tls=true"
-      - "traefik.http.routers.forgejo.tls.certresolver=letsencrypt"
-      - "traefik.http.services.forgejo.loadbalancer.server.port=3000"
-      - "traefik.http.middlewares.forgejo.compress=true"
-      - "traefik.http.routers.forgejo-insecure.rule=Host(`${DOMAIN_FORGEJO}`)"
-      - "traefik.http.routers.forgejo-insecure.entrypoints=web"
-      - "traefik.http.middlewares.forgejo-insecure.redirectscheme.scheme=https"
+      traefik.enable: "true"
+      traefik.http.routers.gitea.rule: "Host(`${DOMAIN_GITEA}`)"
+      traefik.http.routers.gitea.entrypoints: "websecure"
+      traefik.http.routers.gitea.tls.certresolver: "letsencrypt"
+      traefik.http.routers.gitea.middlewares: "hsts@file, compress@file"
+      traefik.http.services.gitea.loadbalancer.server.port: "3000"
+      traefik.http.routers.gitea-insecure.rule: "Host(`${DOMAIN_GITEA}`)"
+      traefik.http.routers.gitea-insecure.entrypoints: "web"
+      traefik.http.routers.gitea-insecure.middlewares: "redirect@file"
 
   woodpecker:
     image: "woodpeckerci/woodpecker-server:v0.15.6-alpine"
     container_name: "woodpecker"
     environment:
-      - "WOODPECKER_OPEN=true"
-      - "WOODPECKER_HOST=${WOODPECKER_HOST}"
-      - "WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}"
-      - "WOODPECKER_GITEA=true"
-      - "WOODPECKER_GITEA_URL=${WOODPECKER_GITEA_URL}"
-      - "WOODPECKER_GITEA_CLIENT=${WOODPECKER_GITEA_CLIENT}"
-      - "WOODPECKER_GITEA_SECRET=${WOODPECKER_GITEA_SECRET}"
+      WOODPECKER_OPEN: "true"
+      WOODPECKER_HOST: "${WOODPECKER_HOST}"
+      WOODPECKER_AGENT_SECRET: "${WOODPECKER_AGENT_SECRET}"
+      WOODPECKER_GITEA: "true"
+      WOODPECKER_GITEA_URL: "${WOODPECKER_GITEA_URL}"
+      WOODPECKER_GITEA_CLIENT: "${WOODPECKER_GITEA_CLIENT}"
+      WOODPECKER_GITEA_SECRET: "${WOODPECKER_GITEA_SECRET}"
     restart: "unless-stopped"
     depends_on:
       - "gitea"
@@ -79,23 +80,22 @@ services:
     volumes:
       - "woodpecker-data:/var/lib/woodpecker"
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.woodpecker.rule=Host(`${DOMAIN_WOODPECKER}`)"
-      - "traefik.http.routers.woodpecker.entrypoints=websecure"
-      - "traefik.http.routers.woodpecker.tls=true"
-      - "traefik.http.routers.woodpecker.tls.certresolver=letsencrypt"
-      - "traefik.http.services.woodpecker.loadbalancer.server.port=8000"
-      - "traefik.http.middlewares.woodpecker.compress=true"
-      - "traefik.http.routers.woodpecker-insecure.rule=Host(`${DOMAIN_WOODPECKER}`)"
-      - "traefik.http.routers.woodpecker-insecure.entrypoints=web"
-      - "traefik.http.middlewares.woodpecker-insecure.redirectscheme.scheme=https"
+      traefik.enable: "true"
+      traefik.http.routers.woodpecker.rule: "Host(`${DOMAIN_WOODPECKER}`)"
+      traefik.http.routers.woodpecker.entrypoints: "websecure"
+      traefik.http.routers.woodpecker.tls.certresolver: "letsencrypt"
+      traefik.http.routers.woodpecker.middlewares: "hsts@file, compress@file"
+      traefik.http.services.woodpecker.loadbalancer.server.port: "8000"
+      traefik.http.routers.woodpecker-insecure.rule: "Host(`${DOMAIN_WOODPECKER}`)"
+      traefik.http.routers.woodpecker-insecure.entrypoints: "web"
+      traefik.http.routers.woodpecker-insecure.middlewares: "redirect@file"
 
   woodpecker-agent:
     image: "woodpeckerci/woodpecker-agent:v0.15.6-alpine"
     command: "unless-stopped"
     environment:
-      - "WOODPECKER_SERVER=woodpecker:9000"
-      - "WOODPECKER_AGENT_SECRET=${WOODPECKER_AGENT_SECRET}"
+      WOODPECKER_SERVER: "woodpecker:9000"
+      WOODPECKER_AGENT_SECRET: "${WOODPECKER_AGENT_SECRET}"
     restart: "always"
     depends_on:
       - "woodpecker"
