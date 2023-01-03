@@ -1,79 +1,104 @@
 #!/bin/env bash
 
-print_header() {
-  echo
-  echo " ${1:-}"
+bold() {
+  echo "$(tput bold)${1:-}$(tput sgr0)"
 }
 
-print_text_n() {
-  echo -n "   ${1:-}"
+save_env() {
+  KEY="${1:-}"
+  VALUE="${2:-}"
+
+  sed -e "s#$KEY=#$KEY=$VALUE#g" < .env > .env.tmp && mv .env.tmp .env
 }
 
-print_text() {
-  print_text_n "${1:-}"
-  echo
+read_env() {
+  PROMPT="${1:-}"
+  KEY="$2"
+
+  if [ -z "$KEY" ]; then
+    return 0
+  fi
+
+  read -r -p "$PROMPT" "${KEY?}"
+  export "${KEY?}"
+
+  VALUE="${!KEY}"
+  save_env "$KEY" "$VALUE"
 }
 
-[ ! -f .env ] && cp .env.example .env
+echo " ____  _____ _____ _   _ ____  "
+echo "/ ___|| ____|_   _| | | |  _ \ "
+echo "\___ \|  _|   | | | | | | |_) |"
+echo " ___) | |___  | | | |_| |  __/ "
+echo "|____/|_____| |_|  \___/|_|    "
+echo
 
-print_header "SSL certs settings"
-print_text_n "Your email: "; read -r EMAIL
-print_text_n "Forgejo instance domain name: "; read -r DOMAIN_FORGEJO
-print_text_n "Woodpecker CI instance domain name: "; read -r DOMAIN_WOODPECKER
+if [ -f .env ]; then
+  read -r -p "Erase existing .env file? [Y/n]: " ERASE_ENV
 
-cat .env \
-  | sed -e "s#EMAIL=#EMAIL=$EMAIL#g" \
-  | sed -e "s#DOMAIN_FORGEJO=#DOMAIN_FORGEJO=$DOMAIN_FORGEJO#g" \
-  | sed -e "s#DOMAIN_WOODPECKER=#DOMAIN_WOODPECKER=$DOMAIN_WOODPECKER#g" \
-  > .env.tmp
-mv .env.tmp .env
-
-print_header "Git user setup"
-if ! id -u "git" >/dev/null 2>&1; then
-  print_text "Creating 'git' user"
-  adduser --system --shell /bin/bash --gecos 'Git Version Control' --group --disabled-password --home /home/git git
-  usermod -aG docker git
-
-  print_text "Setting up SSH access to Forgejo instance inside Docker using:"
-  print_text "https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys"
-  cp ./docker-shell /home/git/docker-shell
-  chmod +x /home/git/docker-shell
-  usermod -s /home/git/docker-shell git
+  case "$ERASE_ENV" in
+    "y" | "Y" | "yes" | "Yes")
+      cp .env.example .env ;;
+    *)
+      echo "Skipping..." ;;
+  esac
 else
-  print_text "User 'git' already exist. Skipping..."
+  cp .env.example .env
 fi
 
-cat .env \
-  | sed -e "s#GIT_USER_UID=#GIT_USER_UID=$(id -u git)#g" \
-  | sed -e "s#GIT_USER_GID=#GIT_USER_GID=$(id -g git)#g" \
-  > .env.tmp
-mv .env.tmp .env
+echo
+bold "SSL settings"
+read_env "- Your email: " EMAIL
+read_env "- Forgejo instance domain: " DOMAIN_FORGEJO
+read_env "- Woodpecker CI instance domain: " DOMAIN_WOODPECKER
 
+echo
+bold "Forgejo setup"
+if ! id -u git >/dev/null 2>&1; then
+  echo "Setting up SSH access to Forgejo instance inside Docker using:"
+  echo "https://docs.gitea.io/en-us/install-with-docker/#docker-shell-with-authorized_keys"
 
-print_header "Starting Docker containers"
+  mkdir -p "/home/git"
+  cat << "EOF" | tee "/home/git/shell"
+#!/bin/sh
+/usr/bin/docker exec -i -u git --env SSH_ORIGINAL_COMMAND="$SSH_ORIGINAL_COMMAND" forgejo sh "$@"
+EOF
+  chmod +x "/home/git/shell"
+
+  echo "Creating git user..."
+  adduser --system --group --disabled-password --gecos 'Git VCS' --shell "/home/git/shell" --home "/home/git" git
+  usermod -aG docker git
+else
+  echo "User 'git' already exists. Skipping..."
+fi
+
+save_env "GIT_USER_UID" "$(id -u git)"
+save_env "GIT_USER_GID" "$(id -g git)"
+
+echo
+bold "Starting Docker containers..."
 docker-compose up -d
 
-print_header "Woodpecker CI setup"
-print_text "1. Open https://$DOMAIN_FORGEJO and setup your Forgejo instance"
-print_text "2. Go to Settings -> Applications -> Manage OAuth2 Applications -> Create a new OAuth2 Application"
-print_text
-print_text "Application Name:    Woodpecker CI"
-print_text "Redirect URI:        https://$DOMAIN_WOODPECKER/authorize"
-print_text
-print_text "3. Enter the received secrets:"
-print_text_n "Client ID: "; read -r WOODPECKER_GITEA_CLIENT
-print_text_n "Client Secret: "; read -r WOODPECKER_GITEA_SECRET
+echo
+bold "Woodpecker CI setup"
+echo "1. Open https://$DOMAIN_FORGEJO and setup your Forgejo instance"
+echo "2. Go to Settings -> Applications -> Manage OAuth2 Applications -> Create a new OAuth2 Application"
+echo
+echo "Application Name:    Woodpecker CI"
+echo "Redirect URI:        https://$DOMAIN_WOODPECKER/authorize"
 
-cat .env \
-  | sed -e "s#WOODPECKER_AGENT_SECRET=#WOODPECKER_AGENT_SECRET=$(openssl rand -hex 32)#g" \
-  | sed -e "s#WOODPECKER_GITEA_CLIENT=#WOODPECKER_GITEA_CLIENT=$WOODPECKER_GITEA_CLIENT#g" \
-  | sed -e "s#WOODPECKER_GITEA_SECRET=#WOODPECKER_GITEA_SECRET=$WOODPECKER_GITEA_SECRET#g" \
-  > .env.tmp
-mv .env.tmp .env
+echo
+echo "3. Enter the received secrets:"
+read_env "- Client ID: " WOODPECKER_GITEA_CLIENT
+read_env "- Client Secret: " WOODPECKER_GITEA_SECRET
+save_env "WOODPECKER_AGENT_SECRET" "$(openssl rand -hex 32)"
 
-print_header "Restarting Docker containers"
+echo
+bold "Restarting Docker containers..."
+docker-compose down
 docker-compose up -d
 
-print_header "All done!"
-print_text "Forgejo: https://$DOMAIN_FORGEJO"
-print_text "Woodpecker CI: https://$DOMAIN_WOODPECKER"
+echo
+bold "All done!"
+echo "- Forgejo:       https://$DOMAIN_FORGEJO"
+echo "- Woodpecker CI: https://$DOMAIN_WOODPECKER"
