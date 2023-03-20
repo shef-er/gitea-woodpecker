@@ -36,7 +36,7 @@ services:
       - "443:443"
 
   gitea:
-    image: "gitea/gitea:1.18.0"
+    image: "gitea/gitea:1.19.0"
     container_name: "gitea"
     environment:
       USER_UID: "${GIT_USER_UID}"
